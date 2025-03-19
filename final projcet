@@ -1,1 +1,249 @@
+# Final project
 
+## project imformation
+
+**TITLE**
+
+' WHO'S THERE ? '
+
+**AUTHOR**
+
+YIMI BAO
+
+**project WRITE-UP**
+
+***INSPIRATION***
+
+The research found that the existing AI chatbots (such as ChatGPT, DeepSeek, etc.) are programs based on large language models and trained by reinforcement learning. Improve model performance with human coaches, enhance machine learning with human interventions, and collect data from users to enhance themselves. In other words, behind the AI as a chatbot is an extremely large database of real human feedback. But is the answer given by AI after extracting and reshaping the database a completely new idea? So who does the response from the AI come from? Who are you talking to?
+
+***SUMMARIZE***
+
+In this project, I hope to use voice interaction and facial recognition tracking, combined with deconstructed visual expression techniques, to reflect the communication and communication between people when using AI as an auxiliary tool and AI or even the huge amount of human ideas behind it as a database source. Perhaps in the intensive bombardment and collision of information, people will gradually question their own ideas, and even lose the subjectivity of thinking, and over-rely on AI...
+
+
+**REFERENCE**
+
+1. Postscript on the Societies of Control by Gilles Deleuze
+
+2. Protocol : How Control Exists after Decentralization by Alex Galloway
+
+3. From Paint to Pixels: the Rise of the Data Artist by Jacoba Urist
+
+4. Viral Capital (2011) by Robert B. Lisek
+
+5. Error_in_time (2012) by Nancy Mauro-Flude
+
+6. Social Turkers (2013) by Lauren Lee McCarthy
+
+7. Data Selfie (2017) by DATA X
+
+8. How do you see me? (2019) by Heather Dewey-Hagborg
+
+
+## website link
+
+**assignment8**
+https://git.arts.ac.uk/24007884/Critical-Coding-Two-Notebook/blob/main/Assignment8.md
+
+## source code
+
+link : 
+https://editor.p5js.org/baoyimi80/sketches/rzClt6So-
+
+code : 
+
+```
+let faces = [];
+let camera;
+let blockSize = 32;
+let sources = [];
+let faceRegions = {
+  leftEye: { x1: 256, y1: 256, x2: 512, y2: 384 },
+  rightEye: { x1: 512, y1: 256, x2: 768, y2: 384 },
+  nose: { x1: 384, y1: 384, x2: 640, y2: 576 },
+  mouth: { x1: 320, y1: 576, x2: 704, y2: 672 },
+};
+
+function preload() {
+  faces[0] = loadImage("0803155e-8e34-4d87-b886-42888a614015.jpg");
+  faces[1] = loadImage("3af6b078-602c-4484-a562-cc3f015935c9.jpg");
+  faces[2] = loadImage("5db123ed-09cb-4a1b-86dc-26fc1d57feda.jpg");
+}
+
+let blockCache = new Map();
+
+function getBlock(source, x, y) {
+  const key = `${source.id}-${x}-${y}`;
+  if (!blockCache.has(key)) {
+    blockCache.set(key, source.get(x, y, blockSize, blockSize));
+  }
+  return blockCache.get(key);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  camera.size(width, height);
+}
+
+function setup() {
+  createCanvas(1024, 768);
+  camera = createCapture(VIDEO);
+  camera.size(1024, 768);
+  camera.hide();
+
+  sources = [...faces, camera];
+}
+
+function draw() {
+  background(0);
+  camera.loadPixels();
+
+  for (let y = 0; y < height; y += blockSize) {
+    for (let x = 0; x < width; x += blockSize) {
+      const region = detectRegion(x, y);
+      const source = selectSource(region);
+      drawMixedBlock(x, y, source);
+    }
+  }
+}
+
+function detectRegion(x, y) {
+  const cx = x + blockSize / 2;
+  const cy = y + blockSize / 2;
+  for (let [region, area] of Object.entries(faceRegions)) {
+    if (cx > area.x1 && cx < area.x2 && cy > area.y1 && cy < area.y2) {
+      return region;
+    }
+  }
+  return "other";
+}
+
+function selectSource(region) {
+  const frameRatio = (frameCount % 300) / 300;
+
+  switch (region) {
+    case "leftEye":
+      return sin(frameRatio * PI) > 0 ? sources[0] : camera;
+    case "rightEye":
+      return noise(frameCount * 0.1) > 0.5 ? sources[1] : camera;
+    case "nose":
+      return sources[2];
+    case "mouth":
+      return millis() % 2000 < 1000 ? random(sources) : camera;
+    default:
+      return random([...sources, camera]);
+  }
+}
+
+function drawMixedBlock(x, y, source) {
+  if (source === camera) {
+    const camBlock = camera.get(x, y, blockSize, blockSize);
+    image(camBlock, x, y);
+    return;
+  }
+
+  const faceBlock = source.get(x, y, blockSize, blockSize);
+
+  push();
+  tint(255, map(sin(frameCount * 0.1), -1, 1, 100, 200));
+  image(faceBlock, x, y);
+  pop();
+}
+
+function keyPressed() {
+  if (key === "+" && blockSize < 128) blockSize *= 2;
+  if (key === "-" && blockSize > 8) blockSize /= 2;
+}
+```
+
+## create process
+
+***PROCESS***
+
+1. Process the database. Collect and organize several clear and complete frontal photos of human heads, and import them into p5js library.
+
+2. Process the image material. Each image is cut according to the size limit to get a large number of pixel blocks.
+
+3. Deconstruction and reorganization. The pixel blocks are divided according to the position of the five features and randomly reorganized. Combined with the microphone and handset components in the Arduino, when an initial statement is entered into the microphone, the handset receives the statement, copies it and sends it out again (similar to the recursive principle). The material is divided by the number of people. When the input statements become more and more noisy, more and more pixel blocks will emerge, and more and more faces will be involved, and a "new face" with a very deconstructive style will be obtained after reorganization.
+
+4. Use ml5.js (faceApi) for face recognition and tracking, plus digital visual style line drawing to express the sense of AI technology. As the proportion of digital tracing on the whole face increases, people are becoming more and more dependent on AI with the help of AI, and even gradually losing the subjectivity of thinking. 
+
+***Technical method***
+
+The code achieves complex real-time mixing effects through modular design, and the processing of each pixel block goes through the complete process: region identification → source selection → special effects rendering. It can be divided into three levels: data flow (pixel processing flow), control flow (mixed strategy logic), and presentation flow (visual effects generation).
+
+Code structure overview:
+Global variable declaration → Resource preload → initialization Settings → main draw loop → auxiliary functions → interactive control
+
+1. Resource loading system
+```
+let faces = [];
+let camera; 
+
+function preload() {
+  faces[0] = loadImage('face1.jpg');
+}
+```
+
+2. Visual parameter configuration
+```
+let blockSize = 32; 
+let faceRegions = {
+  leftEye: { x1:256, y1:256, x2:512, y2:384 },
+};
+```
+
+3. Real-time hybrid engine
+```
+function draw() {
+  camera.loadPixels(); 
+  for(y...) {
+    for(x...) {
+      const region = detectRegion(x, y);
+      const source = selectSource(region);
+      drawMixedBlock(x, y, source);
+    }
+  }
+}
+```
+
+4. Facial recognition processing (region detection algorithm)
+```
+function detectRegion(x, y) {
+  const cx = x + blockSize/2; 
+  const cy = y + blockSize/2;
+}
+```
+
+5. Facial recombination (Dynamic Source selection)
+```
+function selectSource(region) {
+  switch(region) {
+    case 'leftEye':
+      return (sin(...) > 0)
+  }
+}
+```
+
+6. Hybrid rendering
+```
+function drawMixedBlock(x, y, source) {
+  if (source === camera) {
+  } else {
+    tint(255, map(sin(...), 100, 200));
+  }
+}
+```
+
+## SKETCH ##
+
+
+## Creative intention and outlook
+
+***INTENTION***
+
+In this work, I hope to stimulate the sensory feelings of experiential users through dialectical thinking and the visual expression of deconstruction and reshaping and color conflict through the interactive form of picture and sound, so as to arouse people's thinking about the symbiosis and mutual assistance between AI and human beings, as well as the source and prospect: Is there an overreliance on AI to solve problems that has led to a shift in thinking subjectivity?
+
+***OUTLOOK***
+
+In the process of thinking about the original project, I realized that my own thoughts were easily shaken by constant external verification and self-questioning. If there are voices in my ear asking questions and questioning me, will my thoughts remain the same? What is the result of this mix of opinions? The combination of this and random generative art should be very interesting...
